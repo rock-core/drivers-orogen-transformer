@@ -29,6 +29,40 @@ module Transformer
         Orocos.transformer.manager.conf.extend BundleLoadMechanismOverride
     end
 
+    # This class Created a broadcasterwhich is non-bocking
+    # but takes cate of all cleanup which is needed
+    # to shutdown the corresponding system process
+    class ConcurrentBroadcaster
+
+        # The RubyProcess for the Broadcaster
+        attr_reader :process
+
+        # The Orocos::TaskContext for the broadcaster
+        # if launched by this class
+        attr_reader :broadcaster
+
+        def stop
+            @stop_condition.signal
+        end
+
+        def initialize
+            @mutex = Mutex.new
+            @stop_condition = ConditionVariable.new
+        end
+
+        def start(options)
+            @process = Orocos.run(options).first
+            @process.wait_running
+            @thread = Thread.new do
+                @mutex.lock
+                Orocos.guard(@process) do
+                    @stop_condition.wait(@mutex)
+                end
+            end
+            @broadcaster = @process.task(options["transformer::Task"])
+        end
+    end
+
     # Transformer setup for ruby scripts
     class RuntimeSetup
         attr_reader :manager
@@ -61,9 +95,10 @@ module Transformer
                 setup_task(t)
             end
 
-            if broadcaster
-                publish(*tasks)
+            if !broadcaster
+                start_broadcaster
             end
+            publish(*tasks)
         end
 
         class InvalidTransformProducer < RuntimeError
@@ -240,23 +275,49 @@ module Transformer
             broadcaster.setConfiguration(configuration_state)
         end
 
+        def stop_broadcaster
+            if !@concurrent_broadcaster
+                Transformer.warn "Transformer broadcaster seems to started externally, not stopping it"
+                return
+            end
+            @concurrent_broadcaster.stop
+        end
+
         def start_broadcaster(name = Transformer.broadcaster_name, options = Hash.new)
             begin
-            	@broadcaster = Orocos.name_service.get(name)
+                @broadcaster = Orocos.name_service.get(name)
+                Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
             rescue Orocos::NotFound => e
             	# ignore since in this case we have to start the broadcaster
             end
-                        
+
             if !@broadcaster
             	options = options.merge('transformer::Task' => name)
+            end
+
+            if block_given?
+                Orocos::Process.run(options) do
+                    @broadcaster = Orocos.name_service.get(name)
+                    yield
+                end
             else
-            	Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
+                # The brodcaster is already running under a different name in the network
+                # assuming it is intended to use this as the previous block does to keep
+                # the same behaviour
+                if @broadcaster && @broadcaster_process.nil?
+                    return @broadcaster
+                end
+
+                # Not initialize this type of broadcaster durign construction to save memory
+                # only initialize it is really needed. Syskit/Bundles does the initialization on her
+                # own therefore this is mostly needed for customer run-scripts.
+                if !@concurrent_broadcaster
+                    @concurrent_broadcaster = ConcurrentBroadcaster.new
+                end
+
+                @broadcaster = @concurrent_broadcaster.start(options)
             end
-            
-            Orocos::Process.run(options) do
-                @broadcaster = Orocos.name_service.get(name)
-                yield
-            end
+            @broadcaster
         end
     end
 
