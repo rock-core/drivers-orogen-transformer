@@ -204,9 +204,9 @@ module Transformer
             # rest.
             manager.conf.each_dynamic_transform do |dyn|
                 begin
-                    producer_port = resolve_producer(dyn)
+                    producer_name, producer_port_name = dyn.producer.split('.')
                     configuration_state.port_transformation_associations <<
-                        Types::Transformer::PortTransformationAssociation.new(:task => producer_port.task.name, :port => producer_port.name,
+                        Types::Transformer::PortTransformationAssociation.new(:task => producer_name, :port => producer_port_name,
                                                                          :from_frame => dyn.from, :to_frame => dyn.to)
                 rescue Orocos::NotFound
                 end
