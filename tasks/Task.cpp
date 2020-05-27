@@ -35,12 +35,13 @@ void Task::setConfiguration(::transformer::ConfigurationState const& configurati
 //         return false;
 //     return true;
 // }
-// bool Task::startHook()
-// {
-//     if (! TaskBase::startHook())
-//         return false;
-//     return true;
-// }
+bool Task::startHook()
+{
+     if (! TaskBase::startHook())
+         return false;
+     setConfiguration(_configuration.get());
+     return true;
+}
 // void Task::updateHook()
 // {
 //     TaskBase::updateHook();

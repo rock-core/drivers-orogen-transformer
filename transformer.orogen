@@ -17,6 +17,8 @@ task_context "Task" do
     operation('setConfiguration').
         arg("configuration", "transformer/ConfigurationState")
 
+    property "configuration", "transformer/ConfigurationState"
+
     # Outputs a snapshot of all the port-to-frame associations declared at a
     # certain point in time. The port is declared so that
     #
