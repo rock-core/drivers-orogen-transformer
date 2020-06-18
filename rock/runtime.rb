@@ -16,7 +16,7 @@ module Transformer
                 return super(path)
             end
 
-            args = conf + [:order => :specific_first]
+            args = conf + [order: :specific_first]
             file = Roby.app.find_file(*args)
             if !file
                 raise ArgumentError, "cannot find #{conf.join("/")} in the Roby application path"
@@ -110,7 +110,7 @@ module Transformer
 
         class UnknownFrame < RuntimeError; end
 
-        def setup_task(task, policy = { :type => :buffer, :size => 100 })
+        def setup_task(task, policy = { type: :buffer, size: 100 })
             return if !task.model.has_transformer?
 
             tr = task.model.transformer
@@ -206,8 +206,10 @@ module Transformer
                 begin
                     producer_name, producer_port_name = dyn.producer.split('.')
                     configuration_state.port_transformation_associations <<
-                        Types.transformer.PortTransformationAssociation.new(:task => producer_name, :port => producer_port.name,
-                                                                         :from_frame => dyn.from, :to_frame => dyn.to)
+                        Types.transformer.PortTransformationAssociation.new(task: producer_name,
+                                                                            port: producer_port.name,
+                                                                            from_frame: dyn.from,
+                                                                            to_frame: dyn.to)
                 rescue Orocos::NotFound
                 end
             end
@@ -216,13 +218,17 @@ module Transformer
                 task.each_input_port do |p|
                     if p.frame
                         configuration_state.port_frame_associations <<
-                            Types.transformer.PortFrameAssociation.new(:task => task.name, :port => p.name, :frame => p.frame)
+                            Types.transformer.PortFrameAssociation.new(task: task.name,
+                                                                       port: p.name,
+                                                                       frame: p.frame)
                     end
                 end
                 task.each_output_port do |p|
                     if p.frame
                         configuration_state.port_frame_associations <<
-                            Types.transformer.PortFrameAssociation.new(:task => task.name, :port => p.name, :frame => p.frame)
+                            Types.transformer.PortFrameAssociation.new(task: task.name,
+                                                                       port: p.name,
+                                                                       frame: p.frame)
                     end
                 end
             end
@@ -248,7 +254,7 @@ module Transformer
             end
                         
             if !@broadcaster
-            	options = options.merge('transformer::Task' => name)
+                options = options.merge('transformer::Task': name)
             else
             	Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
             end
