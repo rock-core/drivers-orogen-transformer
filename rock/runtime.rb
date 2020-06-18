@@ -254,7 +254,7 @@ module Transformer
             end
                         
             if !@broadcaster
-                options = options.merge('transformer::Task': name)
+                options = options.merge('transformer::Task' => name)
             else
                 Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
             end
