@@ -248,15 +248,15 @@ module Transformer
 
         def start_broadcaster(name = Transformer.broadcaster_name, options = Hash.new)
             begin
-            	@broadcaster = Orocos.name_service.get(name)
+                @broadcaster = Orocos.name_service.get(name)
             rescue Orocos::NotFound => e
-            	# ignore since in this case we have to start the broadcaster
+                # ignore since in this case we have to start the broadcaster
             end
                         
             if !@broadcaster
                 options = options.merge('transformer::Task': name)
             else
-            	Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
+                Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
             end
             
             Orocos::Process.run(options) do
