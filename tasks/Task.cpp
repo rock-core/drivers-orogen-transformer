@@ -1,5 +1,3 @@
-/* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
-
 #include "Task.hpp"
 
 using namespace transformer;
@@ -25,16 +23,6 @@ void Task::setConfiguration(::transformer::ConfigurationState const& configurati
     _configuration_state.write(configuration);
 }
 
-/// The following lines are template definitions for the various state machine
-// hooks defined by Orocos::RTT. See Task.hpp for more detailed
-// documentation about them.
-
-// bool Task::configureHook()
-// {
-//     if (! TaskBase::configureHook())
-//         return false;
-//     return true;
-// }
 bool Task::startHook()
 {
      if (! TaskBase::startHook())
@@ -42,20 +30,3 @@ bool Task::startHook()
      setConfiguration(_configuration.get());
      return true;
 }
-// void Task::updateHook()
-// {
-//     TaskBase::updateHook();
-// }
-// void Task::errorHook()
-// {
-//     TaskBase::errorHook();
-// }
-// void Task::stopHook()
-// {
-//     TaskBase::stopHook();
-// }
-// void Task::cleanupHook()
-// {
-//     TaskBase::cleanupHook();
-// }
-
