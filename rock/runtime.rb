@@ -207,7 +207,7 @@ module Transformer
                     producer_name, producer_port_name = dyn.producer.split('.')
                     configuration_state.port_transformation_associations <<
                         Types.transformer.PortTransformationAssociation.new(task: producer_name,
-                                                                            port: producer_port.name,
+                                                                            port: producer_port_name,
                                                                             from_frame: dyn.from,
                                                                             to_frame: dyn.to)
                 rescue Orocos::NotFound
