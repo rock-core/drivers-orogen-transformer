@@ -3,7 +3,8 @@
       This package the oroGen and Roby plugins to support transformer usage in
       oroGen components and in Rock's supervision layer
   </description>
-  <maintainer>Sylvain Joyeux/sylvain.joyeux@m4x.org</maintainer>
+  <author email="sylvain.joyeux@m4x.org">Sylvain Joyeux</author>
+  <maintainer email="sebastian.kasperski@dfki.de">Sebastian Kasperski</maintainer>
   <license>LGPLv2 or later</license>
   <depend package="drivers/orogen/aggregator" />
   <depend package="drivers/transformer" />
