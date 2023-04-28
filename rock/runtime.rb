@@ -16,7 +16,7 @@ module Transformer
                 return super(path)
             end
 
-            args = conf + [:order => :specific_first]
+            args = conf + [order: :specific_first]
             file = Roby.app.find_file(*args)
             if !file
                 raise ArgumentError, "cannot find #{conf.join("/")} in the Roby application path"
@@ -44,7 +44,7 @@ module Transformer
         end
 
         def reset
-            @configuration_state = Types::Transformer::ConfigurationState.new
+            @configuration_state = Types.transformer.ConfigurationState.new
             @manager = Transformer::TransformationManager.new
         end
 
@@ -110,7 +110,7 @@ module Transformer
 
         class UnknownFrame < RuntimeError; end
 
-        def setup_task(task, policy = { :type => :buffer, :size => 100 })
+        def setup_task(task, policy = { type: :buffer, size: 100 })
             return if !task.model.has_transformer?
 
             tr = task.model.transformer
@@ -164,7 +164,7 @@ module Transformer
             end
 
             task.static_transformations = needed_static_transforms.each_value.map do |static|
-                rbs = Types::Base::Samples::RigidBodyState.invalid
+                rbs = Types.base.samples.RigidBodyState.invalid
                 rbs.sourceFrame = static.from
                 rbs.targetFrame = static.to
                 rbs.position = static.translation
@@ -187,7 +187,7 @@ module Transformer
             configuration_state.static_transformations =
                 manager.conf.
                     enum_for(:each_static_transform).map do |static|
-                        rbs = Types::Base::Samples::RigidBodyState.invalid
+                        rbs = Types.base.samples.RigidBodyState.invalid
                         rbs.sourceFrame = static.from
                         rbs.targetFrame = static.to
                         rbs.position = static.translation
@@ -206,8 +206,10 @@ module Transformer
                 begin
                     producer_name, producer_port_name = dyn.producer.split('.')
                     configuration_state.port_transformation_associations <<
-                        Types::Transformer::PortTransformationAssociation.new(:task => producer_name, :port => producer_port_name,
-                                                                         :from_frame => dyn.from, :to_frame => dyn.to)
+                        Types.transformer.PortTransformationAssociation.new(task: producer_name,
+                                                                            port: producer_port_name,
+                                                                            from_frame: dyn.from,
+                                                                            to_frame: dyn.to)
                 rescue Orocos::NotFound
                 end
             end
@@ -216,13 +218,17 @@ module Transformer
                 task.each_input_port do |p|
                     if p.frame
                         configuration_state.port_frame_associations <<
-                            Types::Transformer::PortFrameAssociation.new(:task => task.name, :port => p.name, :frame => p.frame)
+                            Types.transformer.PortFrameAssociation.new(task: task.name,
+                                                                       port: p.name,
+                                                                       frame: p.frame)
                     end
                 end
                 task.each_output_port do |p|
                     if p.frame
                         configuration_state.port_frame_associations <<
-                            Types::Transformer::PortFrameAssociation.new(:task => task.name, :port => p.name, :frame => p.frame)
+                            Types.transformer.PortFrameAssociation.new(task: task.name,
+                                                                       port: p.name,
+                                                                       frame: p.frame)
                     end
                 end
             end
@@ -242,15 +248,15 @@ module Transformer
 
         def start_broadcaster(name = Transformer.broadcaster_name, options = Hash.new)
             begin
-            	@broadcaster = Orocos.name_service.get(name)
+                @broadcaster = Orocos.name_service.get(name)
             rescue Orocos::NotFound => e
-            	# ignore since in this case we have to start the broadcaster
+                # ignore since in this case we have to start the broadcaster
             end
                         
             if !@broadcaster
-            	options = options.merge('transformer::Task' => name)
+                options = options.merge('transformer::Task' => name)
             else
-            	Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
+                Transformer.warn "Transformer broadcaster was already running. Reusing existing task context"
             end
             
             Orocos::Process.run(options) do
